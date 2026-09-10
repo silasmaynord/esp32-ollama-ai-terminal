@@ -12,10 +12,10 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "wifi_manager.h"
 
-// Forward declarations (implementations will come in Phase 2-6)
+// Forward declarations (implementations will come in Phase 3-6)
 void setupDisplay();
-void setupWiFi();
 void setupTouch();
 void handleDisplayUpdate();
 void handleTouchInput();
@@ -28,23 +28,23 @@ void setup() {
   Serial.begin(DEBUG_BAUD);
   delay(500);
   
-  DEBUG_PRINTLN("╔═══════════════════════════════════════════════════════════╗");
-  DEBUG_PRINTLN("║  ESP32 Ollama AI Terminal                                 ║");
-  DEBUG_PRINTLN("║  Starting initialization sequence...                      ║");
-  DEBUG_PRINTLN("╚═══════════════════════════════════════════════════════════╝");
+  DEBUG_PRINTLN("╔═══════════════════════════════════════════════════════╗");
+  DEBUG_PRINTLN("║  ESP32 Ollama AI Terminal                             ║");
+  DEBUG_PRINTLN("║  Starting initialization sequence...                  ║");
+  DEBUG_PRINTLN("╚═══════════════════════════════════════════════════════╝");
   
   // Phase 1 diagnostic info
   DEBUG_PRINT("Free heap: %u bytes", ESP.getFreeHeap());
   DEBUG_PRINT("Free PSRAM: %u bytes", ESP.getFreePsram());
   DEBUG_PRINT("CPU Freq: %u MHz", getCpuFrequencyMhz());
   
+  // Initialize WiFi (Phase 2)
+  DEBUG_PRINTLN("Initializing WiFi...");
+  setup_wifi_phase2();
+  
   // Initialize display (Phase 4)
   DEBUG_PRINTLN("Initializing display...");
   setupDisplay();
-  
-  // Initialize WiFi (Phase 2)
-  DEBUG_PRINTLN("Initializing WiFi...");
-  setupWiFi();
   
   // Initialize touch input (Phase 5)
   DEBUG_PRINTLN("Initializing touch input...");
@@ -57,10 +57,8 @@ void setup() {
  * @brief Arduino loop() - Main application loop
  */
 void loop() {
-  // Phase 2: Check WiFi connection status
-  // if (!isWiFiConnected()) {
-  //   reconnectWiFi();
-  // }
+  // Phase 2: Check WiFi connection status and reconnect if needed
+  loop_wifi_phase2();
   
   // Phase 5: Handle touch input
   // handleTouchInput();
@@ -86,19 +84,6 @@ void setupDisplay() {
   // - Set rotation and colors
   // - Display splash screen / welcome message
   DEBUG_PRINTLN("Display setup placeholder (Phase 4)");
-}
-
-/**
- * @brief Placeholder: WiFi initialization
- * 
- * Implementation in Phase 2 (wifi_manager.cpp)
- */
-void setupWiFi() {
-  // TODO: Implement in Phase 2
-  // - Connect to WiFi SSID/Password from config.h
-  // - Wait for IP address
-  // - Display WiFi status on screen
-  DEBUG_PRINTLN("WiFi setup placeholder (Phase 2)");
 }
 
 /**
