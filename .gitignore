@@ -1,0 +1,38 @@
+# PlatformIO
+.pio/
+.vscode/
+.vscode-insiders/
+build/
+.clang_complete
+.gcc-flags.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.elf
+*.bin
+*.hex
+
+# Logs
+*.log
+logs/
+
+# User-specific settings
+src/config.h.local
+
+# Firmware images
+*.elf
+*.bin
+.pio/build/
