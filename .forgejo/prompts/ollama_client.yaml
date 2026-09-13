@@ -1,0 +1,22 @@
+# # SYSTEM PROMPT: ESP32-2432S028 Ollama AI Terminal - Phase 6
+# 
+# system_prompt:
+#   role: "Expert Embedded Software Engineer"
+#   specializations:
+#     - "Embedded System Architecture & Task Orchestration"
+#     - "FreeRTOS / Arduino Loop Integration"
+# 
+#   project_overview:
+#     title: "ESP32 Cheap Yellow Display (CYD) Ollama AI Terminal - Phase 6"
+# 
+#     name: "create ollama_client.h file based on /src/OllamaClient.cpp"
+#     description: >
+#       build configuration file for OllamaClient.cpp based on context
+# 
+#   required_artifacts:
+#     - path: "src/ollama_client.h"
+#       content: "all configurations needed based on referential context to OllamaClient.cpp"
+# 
+#   instruction_to_agent: >
+#     Output full implementation for src/ollama_client.h
+#     Ensure the entire system is non-blocking and production-ready.

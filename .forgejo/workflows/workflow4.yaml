@@ -1,0 +1,63 @@
+name: ESP32 Firmware Generation Workflow
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  generate-firmware:
+    runs-on: debian-latest
+    strategy:
+      matrix:
+        include:
+          - phase: 7
+            prompt_file: .forgejo/prompts/troubleshooting1.yaml
+            target_file: troubleshooting/troubleshooting1-resolution.yaml 
+            ollama_host: http://100.99.143.89:11434
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y curl jq
+
+      - name: Query Local Ollama LLM Phase (${{ matrix.phase }})
+        run: |
+          # Read prompt from target YAML file
+          PROMPT_TEXT=$(cat ${{ matrix.prompt_file }})
+
+          # Query Ollama
+           RESPONSE=$(curl -s --max-time 600 -H "Content-Type: application/json" ${{ matrix.ollama_host }}/api/generate -d "$(jq -n \
+            --arg model "qwen3-coder:30b" \
+            --arg prompt "$PROMPT_TEXT" \
+            '{model: $model, prompt: $prompt, stream: false}')")
+
+          # Extract raw text output
+          CONTENT=$(echo "$RESPONSE" | jq -r '.response // empty')
+
+          # Sanitize against empty or null outputs
+          if [ -z "$CONTENT" ] || [ "$CONTENT" = "null" ]; then
+            echo "Error: Generated content for Phase ${{ matrix.phase }} returned null or empty."
+            exit 1
+          fi
+
+          # Ensure target directory exists and write code to file
+          mkdir -p $(dirname ${{ matrix.target_file }})
+          echo "$CONTENT" > ${{ matrix.target_file }}
+          
+          # Verify write was successful
+          test -s ${{ matrix.target_file }}
+
+      - name: Commit and Push Phase Changes
+        run: |
+          git config user.name "Ollama-Runner-Bot"
+          git config user.email "runner-bot@local"
+          git add ${{ matrix.target_file }}
+          if ! git diff --cached --quiet; then
+            git commit -m "feat(firmware): auto-generate phase ${{ matrix.phase }} [${{ matrix.target_file }}]"
+            git pull --rebase origin main
+            git push origin main
+          fi

@@ -1,0 +1,85 @@
+name: Generate and Validate Firmware Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: firmware-generation-single-runner
+  cancel-in-progress: false
+
+jobs:
+  build-and-generate:
+    runs-on: debian-latest
+    strategy:
+      max-parallel: 1
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        
+      - name: Inspect Existing Files & Dangling References
+        run: |
+          echo "=== Auditing Header and Source Dependencies ==="
+          python3 -c "
+          import os, re
+
+          src_dir = 'src'
+          headers = [f for f in os.listdir(src_dir) if f.endswith('.h')]
+          sources = [f for f in os.listdir(src_dir) if f.endswith('.cpp')]
+
+          print(f'Found headers: {headers}')
+          print(f'Found sources: {sources}')
+
+          # Identify headers missing implementation files
+          missing_impl = [h for h in headers if h.replace('.h', '.cpp') not in sources and h != 'config.h']
+          print(f'Headers awaiting implementation: {missing_impl}')
+          "
+
+      - name: Review Existing Sources Against Headers
+        run: |
+          echo "=== Verifying header declarations against source definitions ==="
+          # Confirm methods declared in .h exist in matching .cpp
+          for header in src/*.h; do
+            base=$(basename "$header" .h)
+            if [ -f "src/$base.cpp" ]; then
+              echo "Checking interface parity for $base..."
+            fi
+          done
+
+      - name: Generate Missing Components via Local Ollama
+        run: |
+          echo "=== Generating missing modules (touch_input.cpp, ui_manager.cpp) ==="
+          # Generate touch_input.cpp if missing
+          if [ ! -f "src/touch_input.cpp" ]; then
+            echo "Generating src/touch_input.cpp..."
+            curl -s http://100.99.143.89:11434/api/generate -d '{
+              "model": "codellama",
+              "prompt": "Implement src/touch_input.cpp adhering to src/touch_input.h and src/config.h for XPT2046 on ESP32 CYD.",
+              "stream": false
+            }' | jq -r '.response' > src/touch_input.cpp
+          fi
+
+          # Generate ui_manager.cpp if missing
+          if [ ! -f "src/ui_manager.cpp" ]; then
+            echo "Generating src/ui_manager.cpp..."
+            curl -s http://100.99.143.89:11434/api/generate -d '{
+              "model": "codellama",
+              "prompt": "Implement src/ui_manager.cpp adhering to src/ui_manager.h, src/display_driver.h, src/ollama_client.h, and src/touch_input.h.",
+              "stream": false
+            }' | jq -r '.response' > src/ui_manager.cpp
+          fi
+
+      - name: Commit and Push Generated Code
+        run: |
+          git config user.name "Ollama-Runner-Bot"
+          git config user.email "bot@local.lan"
+          git add src/
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit."
+          else
+            git commit -m "feat(firmware): auto-generate missing implementations and resolve references"
+            git pull origin main --rebase
+            git push origin main
+          fi

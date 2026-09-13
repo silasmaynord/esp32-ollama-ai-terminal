@@ -1,0 +1,106 @@
+# Troubleshooting Context: ESP32-2432S028 Ollama AI Terminal - Phase 7
+
+## Problem Description
+
+The build process for the ESP32-2432S028 Ollama AI Terminal has failed due to a missing `extra_script.py` file referenced in the PlatformIO configuration. This is indicated by:
+
+```
+UserSideException: Processing esp32dev (platform: espressif32 @ ^6.7.0; board: esp32dev; framework: arduino)
+*** missing SConscript file 'extra_script.py'
+```
+
+This error occurs during the build phase when PlatformIO attempts to execute custom build logic defined in `platformio.ini`.
+
+## Root Cause Analysis
+
+1. **Missing File Reference**: The `platformio.ini` configuration contains a reference to an `extra_script.py` file using `extra_scripts = ...`
+2. **Build System Expectation**: SCons (used by PlatformIO) expects this script to exist at the specified path
+3. **Configuration Misalignment**: Either the file was deleted, moved, or the path is incorrect
+
+## Resolution Plan
+
+### Step 1: Review platformio.ini Configuration
+
+First, locate and examine the `platformio.ini` file for any references to extra scripts:
+
+```ini
+[env:esp32dev]
+platform = espressif32 @ ^6.7.0
+board = esp32dev
+framework = arduino
+extra_scripts = pre:extra_script.py
+```
+
+### Step 2: Determine Required Functionality
+
+Since this is part of an AI terminal project, the `extra_script.py` might be intended for:
+- Custom flashing procedures
+- Pre-build configuration
+- Memory optimization settings
+- Integration with Ollama API endpoints
+
+### Step 3: Create or Modify extra_script.py
+
+If no custom logic is required, update `platformio.ini` to remove the invalid reference. Otherwise, create a minimal `extra_script.py`:
+
+```python
+Import('env')
+
+# Optional: Add custom build logic here
+def custom_pre_build():
+    # Example: Set compiler flags for AI model optimization
+    env.Append(CPPDEFINES=[("AI_MODEL_ENABLED", 1)])
+
+# Run the custom function if needed
+custom_pre_build()
+```
+
+### Step 4: Verify File Location and Permissions
+
+Ensure that `extra_script.py` is located in the root of your project directory or update the path accordingly in `platformio.ini`.
+
+### Step 5: Test Build Process
+
+After implementing either solution:
+1. Clean previous builds (`pio run --target clean`)
+2. Rebuild the project (`pio run`)
+3. Confirm successful compilation without errors
+
+## Files to Modify
+
+### 1. platformio.ini
+If no custom logic is needed:
+```ini
+[env:esp32dev]
+platform = espressif32 @ ^6.7.0
+board = esp32dev
+framework = arduino
+# Remove or comment out extra_scripts line if not required
+# extra_scripts = pre:extra_script.py
+```
+
+### 2. extra_script.py (Create if missing)
+```python
+Import('env')
+
+# Placeholder for custom build logic - can be extended based on project needs
+def setup_custom_build():
+    print("Custom build setup completed")
+    # Add any additional configuration here
+
+setup_custom_build()
+```
+
+## Production Readiness Check
+
+- [ ] All modifications maintain non-blocking behavior
+- [ ] No hardcoded paths or platform-specific assumptions
+- [ ] Build scripts remain compatible with ESP-IDF/Arduino ecosystem
+- [ ] Code follows embedded system best practices for memory and performance
+- [ ] Configuration supports multiple environments (dev/staging/prod)
+
+## Final Notes
+
+The presence of `extra_script.py` in the configuration suggests there was a previous need for custom build steps. If these were removed or are not required anymore, simply removing the reference from `platformio.ini` will resolve the issue while maintaining project integrity.
+
+For future development, consider documenting any custom build scripts to prevent similar issues and ensure team members understand their purpose.

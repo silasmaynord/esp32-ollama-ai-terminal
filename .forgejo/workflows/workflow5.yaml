@@ -1,0 +1,105 @@
+name: ESP32 Firmware Generation Workflow
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  generate-firmware:
+    runs-on: debian-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        include:
+          - ollama_host: "http://100.99.143.89:11434"
+            phase: "1a"
+            target_file: "src/ollama_client.h"
+          - ollama_host: "http://100.99.143.89:11434"
+            phase: "1b"
+            target_file: "src/wifi_manager.h"
+          - ollama_host: "http://100.99.143.89:11434"
+            phase: "1c"
+            target_file: "src/display_driver.h"
+          - ollama_host: "http://100.99.143.89:11434"
+            phase: "1d"
+            target_file: "src/touch_input.h"
+          - ollama_host: "http://100.99.143.89:11434"
+            phase: "1e"
+            target_file: "src/ui_manager.h"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y curl jq
+
+      - name: Query Local Ollama LLM
+        run: |
+          # Read the commented prompt directly from the bottom of this file
+          PROMPT_BODY=$(sed -n '/^# system_prompt:/,$ p' .forgejo/workflows/workflow5.yaml | sed 's/^# *//')
+
+          # Attach target file requirement to prompt context
+          PROMPT_TEXT="Generate code specifically for file: ${{ matrix.target_file }}\n\n$PROMPT_BODY"
+
+          # Query Ollama API
+          RESPONSE=$(curl -s --max-time 600 -H "Content-Type: application/json" \
+            ${{ matrix.ollama_host }}/api/generate \
+            -d "$(jq -n \
+              --arg model "qwen3-coder:30b" \
+              --arg prompt "$PROMPT_TEXT" \
+              '{model: $model, prompt: $prompt, stream: false}')")
+
+          # Extract raw response
+          CONTENT=$(echo "$RESPONSE" | jq -r '.response // empty')
+
+          if [ -z "$CONTENT" ] || [ "$CONTENT" = "null" ]; then
+            echo "Error: Generated content for Phase ${{ matrix.phase }} returned null or empty."
+            exit 1
+          fi
+
+          mkdir -p $(dirname ${{ matrix.target_file }})
+          echo "$CONTENT" > ${{ matrix.target_file }}
+          test -s ${{ matrix.target_file }}
+
+      - name: Commit and Push Phase Changes
+        run: |
+          git config user.name "Ollama-Runner-Bot"
+          git config user.email "runner-bot@local"
+          git add ${{ matrix.target_file }}
+          if ! git diff --cached --quiet; then
+            git commit -m "feat(firmware): auto-generate phase ${{ matrix.phase }} [${{ matrix.target_file }}]"
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+# system_prompt:
+#   role: "Expert Embedded Software Engineer"
+#   specializations:
+#     - "Embedded System Architecture & Task Orchestration"
+#     - "FreeRTOS / Arduino Loop Integration"
+#
+#   project_overview:
+#     title: "ESP32 Cheap Yellow Display (CYD) Ollama AI Terminal - Phase 6"
+#     name: "create .h files"
+#     description: >
+#       create *.h files based on *.cpp files already generated
+#
+#   required_artifacts:
+#     - path: "src/ollama_client.h"
+#       content: "Ollama API integration"
+#     - path: "src/wifi_manager.h"
+#       content: "WiFi connection handling"
+#     - path: "src/display_driver.h"
+#       content: "TFT display wrapper"
+#     - path: "src/touch_input.h"
+#       content: "Touch and keyboard interface"
+#     - path: "src/ui_manager.h"
+#       content: "UI orchestration"
+#
+#   instruction_to_agent: >
+#     Output full implementation for all *.h files.
+#     Ensure the entire system is non-blocking and production-ready.

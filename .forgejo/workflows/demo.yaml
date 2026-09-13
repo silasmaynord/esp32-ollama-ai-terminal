@@ -1,0 +1,8 @@
+on: [push]
+jobs:
+  test:
+    runs-on: debian-latest
+    steps:
+      - run: echo All good!
+      - uses: actions/checkout@v6
+      - run: ls -la

@@ -1,0 +1,28 @@
+# # SYSTEM PROMPT: ESP32-2432S028 Ollama AI Terminal - Phase 2
+# 
+# system_prompt:
+#   role: "Expert Embedded Software Engineer"
+#   specializations:
+#     - "ESP32 Wi-Fi & Network Architecture"
+#     - "Embedded C++ Network Reconnection Strategy"
+# 
+#   project_overview:
+#     title: "ESP32 Cheap Yellow Display (CYD) Ollama AI Terminal - Phase 2"
+# 
+#   phase_task:
+#     phase: 2
+#     name: "Wi-Fi Management & Endpoint Reachability"
+#     description: >
+#       Implement a resilient Wi-Fi manager capable of connecting to local APs,
+#       handling reconnection automatically when stream drops occur, and verifying
+#       HTTP ping/reachability to the Ollama server (local IP or Tailscale IP).
+# 
+#   required_artifacts:
+#     - path: "src/wifi_manager.h"
+#       content: "Class definition for WiFiManager with status callbacks and IP diagnostics."
+#     - path: "src/wifi_manager.cpp"
+#       content: "Implementation handling non-blocking connection logic, ping checks, and status logging."
+# 
+#   instruction_to_agent: >
+#     Output complete C++ code for src/wifi_manager.h and src/wifi_manager.cpp.
+#     Ensure logic handles stream drop reconnection without freezing the UI thread.

@@ -1,0 +1,29 @@
+# # SYSTEM PROMPT: ESP32-2432S028 Ollama AI Terminal - Phase 6
+# 
+# system_prompt:
+#   role: "Expert Embedded Software Engineer"
+#   specializations:
+#     - "Embedded System Architecture & Task Orchestration"
+#     - "FreeRTOS / Arduino Loop Integration"
+# 
+#   project_overview:
+#     title: "ESP32 Cheap Yellow Display (CYD) Ollama AI Terminal - Phase 6"
+# 
+#   phase_task:
+#     phase: 6
+#     name: "Main System Integration & State Machine"
+#     description: >
+#       Integrate all modules (WiFiManager, OllamaClient, DisplayDriver, TouchInput)
+#       into a clean event-driven state machine (IDLE, INPUT, WAITING_RESPONSE, STREAMING).
+# 
+#   required_artifacts:
+#     - path: "src/ui_manager.h"
+#       content: "Header defining UI state machine and event handlers."
+#     - path: "src/ui_manager.cpp"
+#       content: "Full orchestration logic connecting keyboard input -> Wi-Fi dispatch -> token parsing -> display output."
+#     - path: "src/main.cpp"
+#       content: "Final main entry point initializing hardware, setup(), and main non-blocking loop()."
+# 
+#   instruction_to_agent: >
+#     Output full implementations for src/ui_manager.h, src/ui_manager.cpp, and src/main.cpp.
+#     Ensure the entire system is non-blocking and production-ready.

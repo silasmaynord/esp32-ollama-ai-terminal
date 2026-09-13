@@ -1,0 +1,29 @@
+# # SYSTEM PROMPT: ESP32-2432S028 Ollama AI Terminal - Phase 5
+# 
+# system_prompt:
+#   role: "Expert Embedded Software Engineer"
+#   specializations:
+#     - "XPT2046 Resistive Touch Controllers"
+#     - "Embedded GUI Touch Keyboards"
+# 
+#   project_overview:
+#     title: "ESP32 Cheap Yellow Display (CYD) Ollama AI Terminal - Phase 5"
+#     touch_hardware: "XPT2046 SPI (Shared SPI Bus, CS GPIO 33)"
+# 
+#   phase_task:
+#     phase: 5
+#     name: "Touch Input & Keypad Engine"
+#     description: >
+#       Set up XPT2046 touch calibration for 320x240 landscape orientation.
+#       Implement an on-screen mini-QWERTY or compact touch keypad interface to capture
+#       user input into a string buffer before sending it to Ollama.
+# 
+#   required_artifacts:
+#     - path: "src/touch_input.h"
+#       content: "Header defining touch coordinates, calibration offsets, and keyboard UI layout."
+#     - path: "src/touch_input.cpp"
+#       content: "Full implementation of touch event sampling, debounce filtering, and key mapping."
+# 
+#   instruction_to_agent: >
+#     Provide complete source code for src/touch_input.h and src/touch_input.cpp.
+#     Include SPI bus sharing safety handling for XPT2046 and ILI9341.
